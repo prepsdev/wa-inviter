@@ -19,21 +19,17 @@ const io = new Server(server, {
 
 const PORT = process.env.PORT || 3000;
 
-// Middleware
 app.use(cors());
 app.use(express.json());
 
-// Global variables
 let sock = null;
 let qrCodeData = null;
 let connectionStatus = 'disconnected';
 let groups = [];
 
-// Socket connection
 io.on('connection', (socket) => {
     console.log('Client connected:', socket.id);
     
-    // Send current status to new client
     socket.emit('status', {
         status: connectionStatus,
         qrCode: qrCodeData,
@@ -45,7 +41,6 @@ io.on('connection', (socket) => {
     });
 });
 
-// WhatsApp connection function
 async function connectToWhatsApp() {
     try {
         const { state, saveCreds } = await useMultiFileAuthState('auth_info_baileys');
@@ -62,12 +57,10 @@ async function connectToWhatsApp() {
             const { connection, lastDisconnect, qr } = update;
             
             if (qr) {
-                // Generate QR code as data URL
                 try {
                     qrCodeData = await QRCode.toDataURL(qr);
                     connectionStatus = 'qr_ready';
                     
-                    // Emit to all connected clients
                     io.emit('qr_code', {
                         qrCode: qrCodeData,
                         status: connectionStatus
@@ -103,7 +96,6 @@ async function connectToWhatsApp() {
                 
                 console.log('WhatsApp connected successfully!');
                 
-                // Get groups after connection
                 await getGroups();
                 
                 io.emit('status_update', {
@@ -123,7 +115,6 @@ async function connectToWhatsApp() {
     }
 }
 
-// Get WhatsApp groups
 async function getGroups() {
     try {
         if (!sock) {
@@ -146,7 +137,6 @@ async function getGroups() {
     }
 }
 
-// API Routes
 app.get('/api/status', (req, res) => {
     res.json({
         status: connectionStatus,
@@ -237,7 +227,6 @@ app.post('/api/disconnect', async (req, res) => {
     }
 });
 
-// Generate invite link for a group
 app.post('/api/invite-link', async (req, res) => {
     try {
         const { groupId } = req.body;
@@ -274,7 +263,6 @@ app.post('/api/invite-link', async (req, res) => {
     }
 });
 
-// Send message to a phone number
 app.post('/api/send-message', async (req, res) => {
     try {
         const { phone, message } = req.body;
@@ -293,10 +281,8 @@ app.post('/api/send-message', async (req, res) => {
             });
         }
         
-        // Validate phone number format
         let formattedPhone = phone.replace(/^\+/, '').replace(/\s/g, '');
         
-        // Check if phone number is valid (at least 10 digits)
         if (formattedPhone.length < 10) {
             return res.status(400).json({
                 success: false,
@@ -305,12 +291,10 @@ app.post('/api/send-message', async (req, res) => {
             });
         }
         
-        // If phone doesn't start with country code, assume it's Indonesian (+62)
         if (!formattedPhone.startsWith('62')) {
             formattedPhone = '62' + formattedPhone.replace(/^0/, '');
         }
         
-        // Final validation - must be at least 12 digits (62 + 10 digits)
         if (formattedPhone.length < 12) {
             return res.status(400).json({
                 success: false,
@@ -319,10 +303,8 @@ app.post('/api/send-message', async (req, res) => {
             });
         }
         
-        // Add @s.whatsapp.net suffix
         const jid = `${formattedPhone}@s.whatsapp.net`;
         
-        // Send the message with timeout and retry logic
         let retries = 3;
         let lastError = null;
         
@@ -334,21 +316,18 @@ app.post('/api/send-message', async (req, res) => {
                     linkPreview: false
                 });
                 
-                // If successful, break out of retry loop
                 break;
                 
             } catch (error) {
                 lastError = error;
                 console.log(`Attempt ${attempt} failed for ${formattedPhone}: ${error.message}`);
                 
-                // If this is not the last attempt, wait before retrying
                 if (attempt < retries) {
-                    await new Promise(resolve => setTimeout(resolve, 2000 * attempt)); // Exponential backoff
+                    await new Promise(resolve => setTimeout(resolve, 2000 * attempt));
                 }
             }
         }
         
-        // If all retries failed, throw the last error
         if (lastError) {
             throw lastError;
         }
@@ -364,7 +343,6 @@ app.post('/api/send-message', async (req, res) => {
     } catch (error) {
         console.error('Error sending message:', error);
         
-        // Provide more specific error messages
         let errorMessage = error.message;
         if (error.message.includes('timeout') || error.message.includes('RTO')) {
             errorMessage = 'Request timeout - please try again';
@@ -381,7 +359,6 @@ app.post('/api/send-message', async (req, res) => {
     }
 });
 
-// Generate Excel log file
 app.post('/api/generate-log', async (req, res) => {
     try {
         const { logData, groupName, namaDiklat, kelompok } = req.body;
@@ -393,11 +370,9 @@ app.post('/api/generate-log', async (req, res) => {
             });
         }
         
-        // Create workbook and worksheet
         const workbook = new ExcelJS.Workbook();
         const worksheet = workbook.addWorksheet('Invite Log');
         
-        // Set up headers
         worksheet.columns = [
             { header: 'Name', key: 'name', width: 30 },
             { header: 'Phone', key: 'phone', width: 20 },
@@ -406,7 +381,6 @@ app.post('/api/generate-log', async (req, res) => {
             { header: 'Timestamp', key: 'timestamp', width: 20 }
         ];
         
-        // Style the header row
         const headerRow = worksheet.getRow(1);
         if (headerRow.font) {
             headerRow.font.bold = true;
@@ -420,7 +394,6 @@ app.post('/api/generate-log', async (req, res) => {
             headerRow.font.color = { argb: 'FFFFFFFF' };
         }
         
-        // Add data rows
         logData.forEach((item, index) => {
             const row = worksheet.addRow({
                 name: item.name,
@@ -430,7 +403,6 @@ app.post('/api/generate-log', async (req, res) => {
                 timestamp: item.timestamp || new Date().toLocaleString('id-ID')
             });
             
-            // Color code the status
             const statusCell = row.getCell('status');
             if (item.status === 'Success') {
                 statusCell.fill = {
@@ -453,8 +425,7 @@ app.post('/api/generate-log', async (req, res) => {
             }
         });
         
-        // Add summary information
-        worksheet.addRow([]); // Empty row
+        worksheet.addRow([]);
         const summaryRow1 = worksheet.addRow(['Summary Information']);
         summaryRow1.font = { bold: true };
         summaryRow1.getCell(1).fill = {
@@ -471,21 +442,17 @@ app.post('/api/generate-log', async (req, res) => {
         worksheet.addRow(['Failed', logData.filter(item => item.status === 'Failed').length]);
         worksheet.addRow(['Generated At', new Date().toLocaleString('id-ID')]);
         
-        // Create logs directory if it doesn't exist
         const logsDir = path.join(__dirname, 'logs');
         if (!fs.existsSync(logsDir)) {
             fs.mkdirSync(logsDir);
         }
         
-        // Generate filename with timestamp
         const timestamp = new Date().toISOString().replace(/[:.]/g, '-').split('T')[0];
         const filename = `invite_log_${groupName?.replace(/[^a-zA-Z0-9]/g, '_') || 'group'}_${timestamp}.xlsx`;
         const filepath = path.join(logsDir, filename);
         
-        // Save the workbook
         await workbook.xlsx.writeFile(filepath);
         
-        // Send file as response
         res.download(filepath, filename, (err) => {
             if (err) {
                 console.error('Error sending file:', err);
@@ -494,7 +461,6 @@ app.post('/api/generate-log', async (req, res) => {
                     message: 'Error sending file'
                 });
             } else {
-                // Delete the file after sending (optional)
                 setTimeout(() => {
                     fs.unlink(filepath, (unlinkErr) => {
                         if (unlinkErr) console.error('Error deleting file:', unlinkErr);
@@ -512,7 +478,6 @@ app.post('/api/generate-log', async (req, res) => {
     }
 });
 
-// Get group participants endpoint
 app.post('/api/group-participants', async (req, res) => {
     try {
         const { groupId } = req.body;
@@ -531,13 +496,11 @@ app.post('/api/group-participants', async (req, res) => {
             });
         }
 
-        // Get group participants using the correct method
         const groupData = await sock.groupMetadata(groupId);
         const participants = groupData.participants || [];
         
         console.log('Group participants:', participants);
 
-        // Try to get additional information for each participant
         const detailedParticipants = [];
         
         for (const participant of participants) {
@@ -547,16 +510,13 @@ app.post('/api/group-participants', async (req, res) => {
                 rawData: participant
             };
             
-            // Try to get additional contact information
             try {
-                // Method 1: Check if we have contact info in sock.contacts
                 if (sock.contacts && sock.contacts[participant.id]) {
                     const contact = sock.contacts[participant.id];
                     detailedParticipant.contactInfo = contact;
                     console.log(`Found contact info for ${participant.id}:`, contact);
                 }
                 
-                // Method 2: Try to get user info
                 try {
                     const userInfo = await sock.user(participant.id);
                     detailedParticipant.userInfo = userInfo;
@@ -565,7 +525,6 @@ app.post('/api/group-participants', async (req, res) => {
                     console.log(`Could not get user info for ${participant.id}:`, userError.message);
                 }
                 
-                // Method 3: Try to extract phone number if it's in the ID
                 if (participant.id.includes('@s.whatsapp.net')) {
                     const phone = participant.id.replace('@s.whatsapp.net', '');
                     detailedParticipant.extractedPhone = phone;
@@ -594,7 +553,6 @@ app.post('/api/group-participants', async (req, res) => {
     }
 });
 
-// Check if phone numbers are group members endpoint
 app.post('/api/check-members', async (req, res) => {
     try {
         const { groupId, phoneNumbers } = req.body;
@@ -620,28 +578,21 @@ app.post('/api/check-members', async (req, res) => {
             });
         }
 
-        // Get group participants
         const groupData = await sock.groupMetadata(groupId);
         const participants = groupData.participants || [];
         
         console.log('Group participants:', participants);
 
-        // Try to get phone numbers from participant IDs
         const participantPhoneNumbers = new Set();
         
         for (const participant of participants) {
             try {
-                // Extract phone number from participant ID if possible
-                // Participant ID format: 6281234567890@s.whatsapp.net or 17829046804593@lid
                 if (participant.id.includes('@s.whatsapp.net')) {
-                    // This is a phone number format
                     const phone = participant.id.replace('@s.whatsapp.net', '');
                     participantPhoneNumbers.add(phone);
                     console.log(`Found phone number from participant: ${phone}`);
                 } else if (participant.id.includes('@lid')) {
-                    // This is an internal ID, try to get contact info using different methods
                     try {
-                        // Method 1: Try to get contact info using sock.contacts
                         if (sock.contacts && sock.contacts[participant.id]) {
                             const contact = sock.contacts[participant.id];
                             if (contact.id && contact.id.includes('@s.whatsapp.net')) {
@@ -651,7 +602,6 @@ app.post('/api/check-members', async (req, res) => {
                             }
                         }
                         
-                        // Method 2: Try to get user info using the internal ID
                         try {
                             const userInfo = await sock.user(participant.id);
                             if (userInfo && userInfo.id && userInfo.id.includes('@s.whatsapp.net')) {
@@ -663,7 +613,6 @@ app.post('/api/check-members', async (req, res) => {
                             console.log(`Could not get user info for ${participant.id}:`, userError.message);
                         }
                         
-                        // Method 3: Try to get contact info using sock.contactsUpsert (if available)
                         if (typeof sock.contactsUpsert === 'function') {
                             try {
                                 const contact = await sock.contactsUpsert([{
@@ -691,22 +640,18 @@ app.post('/api/check-members', async (req, res) => {
         
         console.log('Participant phone numbers found:', Array.from(participantPhoneNumbers));
 
-        // Check each phone number from CSV
         const results = [];
         
         for (const phoneData of phoneNumbers) {
             const { name, phone } = phoneData;
             
             try {
-                // Format phone number
                 let formattedPhone = phone.replace(/^\+/, '').replace(/\s/g, '');
                 
-                // Ensure it starts with country code
                 if (!formattedPhone.startsWith('62')) {
                     formattedPhone = '62' + formattedPhone.replace(/^0/, '');
                 }
                 
-                // Check if this phone number exists in the group participants
                 const isMember = participantPhoneNumbers.has(formattedPhone);
                 
                 results.push({
@@ -749,7 +694,6 @@ app.post('/api/check-members', async (req, res) => {
     }
 });
 
-// New improved check members endpoint using onWhatsApp method
 app.post('/api/check-members-v2', async (req, res) => {
     try {
         const { groupId, phoneNumbers } = req.body;
@@ -775,7 +719,6 @@ app.post('/api/check-members-v2', async (req, res) => {
             });
         }
 
-        // Get group participants
         const groupData = await sock.groupMetadata(groupId);
         const participants = groupData.participants || [];
         
@@ -791,17 +734,13 @@ app.post('/api/check-members-v2', async (req, res) => {
             try {
                 const { name, phone } = phoneData;
                 
-                // Normalize phone number (remove +, spaces, etc.)
                 let normalizedPhone = phone.replace(/^\+/, '').replace(/\s/g, '').replace(/-/g, '');
                 
-                // Ensure it starts with country code (assume Indonesia +62 if not present)
                 if (!normalizedPhone.startsWith('62') && normalizedPhone.length > 10) {
-                    // If it starts with 0, replace with 62
                     if (normalizedPhone.startsWith('0')) {
                         normalizedPhone = '62' + normalizedPhone.substring(1);
                     }
                 } else if (normalizedPhone.length <= 10) {
-                    // Too short, likely missing country code
                     if (normalizedPhone.startsWith('8')) {
                         normalizedPhone = '62' + normalizedPhone;
                     }
@@ -809,7 +748,6 @@ app.post('/api/check-members-v2', async (req, res) => {
                 
                 console.log(`Checking phone: ${phone} -> normalized: ${normalizedPhone}`);
                 
-                // Try to get user existence and JID using onWhatsApp
                 let foundMatch = false;
                 let matchMethod = '';
                 let userJid = '';
@@ -820,11 +758,10 @@ app.post('/api/check-members-v2', async (req, res) => {
                     
                     if (existenceCheck && existenceCheck.length > 0) {
                         userJid = existenceCheck[0].jid;
-                        const userLid = existenceCheck[0].lid; // This is the key!
+                        const userLid = existenceCheck[0].lid;
                         console.log(`User JID from onWhatsApp: ${userJid}`);
                         console.log(`User LID from onWhatsApp: ${userLid}`);
                         
-                        // Check if this JID is in participants
                         for (const participant of participants) {
                             if (participant.id === userJid) {
                                 foundMatch = true;
@@ -833,7 +770,6 @@ app.post('/api/check-members-v2', async (req, res) => {
                             }
                         }
                         
-                        // IMPORTANT: Check if the LID matches (this is what we were missing!)
                         if (!foundMatch && userLid) {
                             for (const participant of participants) {
                                 if (participant.id === userLid) {
@@ -845,7 +781,6 @@ app.post('/api/check-members-v2', async (req, res) => {
                             }
                         }
                         
-                        // Also try without the @s.whatsapp.net suffix, sometimes IDs are stored differently
                         if (!foundMatch) {
                             const baseJid = userJid.replace('@s.whatsapp.net', '');
                             for (const participant of participants) {
@@ -862,7 +797,6 @@ app.post('/api/check-members-v2', async (req, res) => {
                 } catch (whatsappError) {
                     console.log(`onWhatsApp check failed for ${normalizedPhone}:`, whatsappError.message);
                     
-                    // Fallback: Try direct JID formats
                     const directJid = normalizedPhone + '@s.whatsapp.net';
                     const lidJid = normalizedPhone + '@lid';
                     
@@ -885,15 +819,24 @@ app.post('/api/check-members-v2', async (req, res) => {
                     });
                     memberCount++;
                     console.log(`✓ ${name} (${phone}) is a member - ${matchMethod}`);
-                } else {
+                } else if (userJid) {
                     results.push({
                         name: name,
                         phone: phone,
                         status: 'Not Member',
-                        reason: userJid ? `WhatsApp user exists (JID: ${userJid}) but not in this group` : 'Phone number not registered on WhatsApp or not found in group'
+                        reason: 'Valid WhatsApp number but not in this group'
                     });
                     notMemberCount++;
-                    console.log(`✗ ${name} (${phone}) is not a member`);
+                    console.log(`⚠ ${name} (${phone}) is not a member but has valid WhatsApp`);
+                } else {
+                    results.push({
+                        name: name,
+                        phone: phone,
+                        status: 'Invalid',
+                        reason: 'Phone number not registered on WhatsApp'
+                    });
+                    errorCount++;
+                    console.log(`✗ ${name} (${phone}) is invalid - not registered on WhatsApp`);
                 }
                 
             } catch (error) {
@@ -901,21 +844,21 @@ app.post('/api/check-members-v2', async (req, res) => {
                 results.push({
                     name: phoneData.name,
                     phone: phoneData.phone,
-                    status: 'Error',
+                    status: 'Invalid',
                     reason: `Error: ${error.message}`
                 });
                 errorCount++;
             }
         }
 
-        console.log(`Check complete: ${memberCount} members, ${notMemberCount} not members, ${errorCount} errors`);
+        console.log(`Check complete: ${memberCount} members, ${notMemberCount} not members, ${errorCount} invalid`);
 
         res.json({
             success: true,
             results: results,
             members: memberCount,
             notMembers: notMemberCount,
-            errors: errorCount
+            invalid: errorCount
         });
 
     } catch (error) {
@@ -927,7 +870,6 @@ app.post('/api/check-members-v2', async (req, res) => {
     }
 });
 
-// Generate check Excel log endpoint
 app.post('/api/generate-check-log', async (req, res) => {
     try {
         const { logData, groupName } = req.body;
@@ -939,11 +881,9 @@ app.post('/api/generate-check-log', async (req, res) => {
             });
         }
 
-        // Create a new workbook and worksheet
         const workbook = new ExcelJS.Workbook();
         const worksheet = workbook.addWorksheet('Member Check Log');
 
-        // Add headers
         worksheet.columns = [
             { header: 'Name', key: 'name', width: 30 },
             { header: 'Phone', key: 'phone', width: 20 },
@@ -952,7 +892,6 @@ app.post('/api/generate-check-log', async (req, res) => {
             { header: 'Timestamp', key: 'timestamp', width: 20 }
         ];
 
-        // Style the header row
         const headerRow = worksheet.getRow(1);
         headerRow.fill = {
             type: 'pattern',
@@ -963,7 +902,6 @@ app.post('/api/generate-check-log', async (req, res) => {
             headerRow.font.color = { argb: 'FFFFFFFF' };
         }
         
-        // Add data rows
         logData.forEach((item, index) => {
             const row = worksheet.addRow({
                 name: item.name,
@@ -973,7 +911,6 @@ app.post('/api/generate-check-log', async (req, res) => {
                 timestamp: item.timestamp || new Date().toLocaleString('id-ID')
             });
             
-            // Color code the status
             const statusCell = row.getCell('status');
             if (item.status === 'Member') {
                 statusCell.fill = {
@@ -988,34 +925,24 @@ app.post('/api/generate-check-log', async (req, res) => {
                 statusCell.fill = {
                     type: 'pattern',
                     pattern: 'solid',
+                    fgColor: { argb: 'FFFFEB9C' }
+                };
+                if (statusCell.font) {
+                    statusCell.font.color = { argb: 'FF9C5700' };
+                }
+            } else if (item.status === 'Invalid') {
+                statusCell.fill = {
+                    type: 'pattern',
+                    pattern: 'solid',
                     fgColor: { argb: 'FFFFC7CE' }
                 };
                 if (statusCell.font) {
                     statusCell.font.color = { argb: 'FF9C0006' };
                 }
-                         } else if (item.status === 'Invalid') {
-                 statusCell.fill = {
-                     type: 'pattern',
-                     pattern: 'solid',
-                     fgColor: { argb: 'FFFFEB9C' }
-                 };
-                 if (statusCell.font) {
-                     statusCell.font.color = { argb: 'FF9C5700' };
-                 }
-             } else if (item.status === 'Unknown') {
-                 statusCell.fill = {
-                     type: 'pattern',
-                     pattern: 'solid',
-                     fgColor: { argb: 'FFE6E6FA' }
-                 };
-                 if (statusCell.font) {
-                     statusCell.font.color = { argb: 'FF4B0082' };
-                 }
-             }
+            }
         });
         
-        // Add summary information
-        worksheet.addRow([]); // Empty row
+        worksheet.addRow([]);
         const summaryRow1 = worksheet.addRow(['Summary Information']);
         summaryRow1.font = { bold: true };
         summaryRow1.getCell(1).fill = {
@@ -1025,28 +952,23 @@ app.post('/api/generate-check-log', async (req, res) => {
         };
         
         worksheet.addRow(['Group Name', groupName || 'N/A']);
-                 worksheet.addRow(['Total Records', logData.length]);
-         worksheet.addRow(['Members', logData.filter(item => item.status === 'Member').length]);
-         worksheet.addRow(['Not Members', logData.filter(item => item.status === 'Not Member').length]);
-         worksheet.addRow(['Unknown', logData.filter(item => item.status === 'Unknown').length]);
-         worksheet.addRow(['Invalid', logData.filter(item => item.status === 'Invalid').length]);
+        worksheet.addRow(['Total Records', logData.length]);
+        worksheet.addRow(['Members', logData.filter(item => item.status === 'Member').length]);
+        worksheet.addRow(['Not Members', logData.filter(item => item.status === 'Not Member').length]);
+        worksheet.addRow(['Invalid', logData.filter(item => item.status === 'Invalid').length]);
         worksheet.addRow(['Generated At', new Date().toLocaleString('id-ID')]);
         
-        // Create logs directory if it doesn't exist
         const logsDir = path.join(__dirname, 'logs');
         if (!fs.existsSync(logsDir)) {
             fs.mkdirSync(logsDir);
         }
         
-        // Generate filename with timestamp
         const timestamp = new Date().toISOString().replace(/[:.]/g, '-').split('T')[0];
         const filename = `member_check_${groupName?.replace(/[^a-zA-Z0-9]/g, '_') || 'group'}_${timestamp}.xlsx`;
         const filepath = path.join(logsDir, filename);
         
-        // Save the workbook
         await workbook.xlsx.writeFile(filepath);
         
-        // Send file as response
         res.download(filepath, filename, (err) => {
             if (err) {
                 console.error('Error sending file:', err);
@@ -1055,7 +977,6 @@ app.post('/api/generate-check-log', async (req, res) => {
                     message: 'Error sending file'
                 });
             } else {
-                // Delete the file after sending (optional)
                 setTimeout(() => {
                     fs.unlink(filepath, (unlinkErr) => {
                         if (unlinkErr) console.error('Error deleting file:', unlinkErr);
@@ -1073,11 +994,9 @@ app.post('/api/generate-check-log', async (req, res) => {
     }
 });
 
-// Start server
 server.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
     console.log(`WebSocket server ready for real-time communication`);
 });
 
-// Initial connection attempt
 connectToWhatsApp();

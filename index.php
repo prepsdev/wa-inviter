@@ -5,14 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WhatsApp Group Manager - Baileys Integration</title>
     
-    <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.css">
-    <!-- Socket.IO Client -->
     <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
-    
-    <!-- Google Fonts - Montserrat -->
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     
     <style>
@@ -20,7 +15,7 @@
             font-family: 'Montserrat', sans-serif;
         }
         
-        /* Custom Success Color Override */
+
         .btn-success {
             background-color: #21414f !important;
             border-color: #21414f !important;
@@ -45,7 +40,7 @@
             color: #0c5460 !important;
         }
         
-        /* Custom Primary Color Override */
+
         .btn-primary {
             background-color: #2c5aa0 !important;
             border-color: #2c5aa0 !important;
@@ -96,16 +91,16 @@
     </style>
 </head>
 <body class="bg-light">
-    <!-- Connection Status Alert -->
+
     <div id="connectionStatus" class="connection-status">
         <div class="alert alert-info alert-dismissible" role="alert">
             <i class="bi bi-wifi"></i> <span id="statusText">Connecting to server...</span>
         </div>
     </div>
 
-    <!-- Main Container -->
+
     <div class="container py-4">
-        <!-- Header -->
+
         <div class="row mb-4">
             <div class="col">
                 <h1 class="display-5 text-center">
@@ -116,7 +111,7 @@
             </div>
         </div>
 
-        <!-- Status Card -->
+
         <div class="row mb-4">
             <div class="col-md-8 mx-auto">
                 <div class="card shadow-sm">
@@ -142,7 +137,7 @@
             </div>
         </div>
 
-        <!-- QR Code Section -->
+
         <div class="row mb-4" id="qrSection" style="display: none;">
             <div class="col-md-6 mx-auto">
                 <div class="card shadow-sm">
@@ -171,7 +166,7 @@
             </div>
         </div>
 
-        <!-- Groups Section -->
+
         <div class="row" id="groupsSection" style="display: none;">
             <div class="col">
                 <div class="card shadow-sm">
@@ -185,7 +180,6 @@
                     </div>
                     <div class="card-body">
                         <div id="groupsContainer">
-                            <!-- Groups will be loaded here -->
                         </div>
                     </div>
                 </div>
@@ -193,7 +187,7 @@
         </div>
     </div>
 
-    <!-- Invite Modal -->
+
     <div class="modal fade" id="inviteModal" tabindex="-1" aria-labelledby="inviteModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
@@ -257,7 +251,7 @@ Kamu terdaftar sebagai peserta Diklat {nama_diklat} dengan group kelompok {kelom
 {link}</textarea>
                     </div>
                     
-                    <!-- Progress Section (hidden by default) -->
+
                     <div id="progressSection" style="display: none;">
                         <h6>Sending Progress</h6>
                         <div class="progress mb-2">
@@ -281,7 +275,7 @@ Kamu terdaftar sebagai peserta Diklat {nama_diklat} dengan group kelompok {kelom
         </div>
          </div>
  
-     <!-- Check Members Modal -->
+
      <div class="modal fade" id="checkModal" tabindex="-1" aria-labelledby="checkModalLabel" aria-hidden="true">
          <div class="modal-dialog modal-lg">
              <div class="modal-content">
@@ -329,7 +323,7 @@ Kamu terdaftar sebagai peserta Diklat {nama_diklat} dengan group kelompok {kelom
                          </div>
                      </div>
                      
-                     <!-- Check Progress Section (hidden by default) -->
+
                      <div id="checkProgressSection" style="display: none;">
                          <h6>Checking Progress</h6>
                          <div class="progress mb-2">
@@ -350,15 +344,15 @@ Kamu terdaftar sebagai peserta Diklat {nama_diklat} dengan group kelompok {kelom
          </div>
      </div>
  
-     <!-- Bootstrap 5 JS -->
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     
-    <!-- Custom JavaScript -->
+
     <script>
-        // Configuration
+
         const API_BASE_URL = 'http://localhost:3000';
         
-        // DOM Elements
+
         const statusBadge = document.getElementById('statusBadge');
         const statusText = document.getElementById('statusText');
         const connectBtn = document.getElementById('connectBtn');
@@ -370,10 +364,10 @@ Kamu terdaftar sebagai peserta Diklat {nama_diklat} dengan group kelompok {kelom
         const refreshGroupsBtn = document.getElementById('refreshGroupsBtn');
         const connectionStatus = document.getElementById('connectionStatus');
 
-        // Socket.IO connection
+
         let socket;
         
-        // Initialize
+
         document.addEventListener('DOMContentLoaded', function() {
             initializeSocketConnection();
             setupEventListeners();
@@ -584,9 +578,6 @@ Kamu terdaftar sebagai peserta Diklat {nama_diklat} dengan group kelompok {kelom
                         <button class="btn btn-primary btn-sm me-2" onclick="openCheckModal('${group.id}', '${group.name}')">
                             <i class="bi bi-search"></i> Check Members
                         </button>
-                        <button class="btn btn-info btn-sm" onclick="listGroupMembers('${group.id}', '${group.name}')">
-                            <i class="bi bi-list"></i> List Members
-                        </button>
                         </div>
                     </div>
                 </div>
@@ -597,7 +588,6 @@ Kamu terdaftar sebagai peserta Diklat {nama_diklat} dengan group kelompok {kelom
 
         function copyGroupId(groupId) {
             navigator.clipboard.writeText(groupId).then(() => {
-                // Show toast notification
                 const toast = document.createElement('div');
                 toast.className = 'toast align-items-center text-white bg-success border-0 position-fixed top-0 end-0 mt-3 me-3';
                 toast.style.zIndex = '1055';
@@ -636,12 +626,12 @@ Kamu terdaftar sebagai peserta Diklat {nama_diklat} dengan group kelompok {kelom
             connectionStatus.querySelector('.alert').className = `alert ${alertClass} alert-dismissible`;
         }
 
-                 // Global variables for invite functionality
+
          let selectedGroupId = null;
          let selectedGroupName = null;
          let csvData = [];
          
-         // Global variables for check members functionality
+
          let checkGroupId = null;
          let checkGroupName = null;
          let checkCsvData = [];
@@ -653,7 +643,7 @@ Kamu terdaftar sebagai peserta Diklat {nama_diklat} dengan group kelompok {kelom
             document.getElementById('selectedGroupId').textContent = groupId;
             document.getElementById('selectedGroupName').textContent = groupName;
             
-            // Reset form
+
             document.getElementById('namaDiklat').value = '';
             document.getElementById('kelompok').value = '';
             document.getElementById('csvFile').value = '';
@@ -682,33 +672,32 @@ Kamu terdaftar sebagai peserta Diklat {nama_diklat} dengan group kelompok {kelom
                     if (line) {
                         const parts = line.split(';');
                         if (parts.length >= 2) {
-                            // Fix phone number format - convert scientific notation back to normal number
+                
                             let phone = parts[1].trim();
                             
-                            // Handle scientific notation (e.g., 6.28122E+12)
+
                             if (phone.includes('E') || phone.includes('e')) {
                                 phone = parseFloat(phone).toString();
                             }
                             
-                            // Remove any non-numeric characters except + and .
+
                             phone = phone.replace(/[^\d+.]/g, '');
                             
-                            // If it's a decimal number, convert to integer
+
                             if (phone.includes('.')) {
                                 phone = phone.split('.')[0];
                             }
                             
-                            // Ensure it starts with country code
+
                             if (phone.startsWith('+')) {
                                 phone = phone.substring(1);
                             }
                             
-                            // If it doesn't start with 62, assume it's Indonesian
+
                             if (!phone.startsWith('62')) {
                                 phone = '62' + phone.replace(/^0/, '');
                             }
                             
-                                                         // Validate phone number length and format
                              if (phone.length < 12) {
                                  console.warn(`Invalid phone number for ${parts[0].trim()}: ${phone} (too short - minimum 12 digits required)`);
                                  csvData.push({
@@ -767,7 +756,6 @@ Kamu terdaftar sebagai peserta Diklat {nama_diklat} dengan group kelompok {kelom
                 else invalidCount++;
             });
 
-            // Add summary row
             const summaryRow = document.createElement('tr');
             summaryRow.className = 'table-info';
             summaryRow.innerHTML = `
@@ -800,14 +788,11 @@ Kamu terdaftar sebagai peserta Diklat {nama_diklat} dengan group kelompok {kelom
                 return;
             }
             
-            // Check for invalid phone numbers
             const invalidPhones = csvData.filter(p => !p.valid);
             if (invalidPhones.length > 0) {
                 if (skipInvalid) {
-                    // Skip invalid numbers automatically
                     console.log(`Skipping ${invalidPhones.length} invalid phone numbers`);
                 } else {
-                    // Ask user for confirmation
                     const invalidList = invalidPhones.map(p => `${p.name}: ${p.phone}`).join('\n');
                     const confirmMessage = `Found ${invalidPhones.length} invalid phone number(s):\n\n${invalidList}\n\nThese will be skipped. Continue anyway?`;
                     if (!confirm(confirmMessage)) {
@@ -821,17 +806,14 @@ Kamu terdaftar sebagai peserta Diklat {nama_diklat} dengan group kelompok {kelom
             sendBtn.disabled = true;
             sendBtn.innerHTML = '<i class="bi bi-spinner spinner-border spinner-border-sm"></i> Sending...';
 
-            // Show progress section
             document.getElementById('progressSection').style.display = 'block';
             const progressBar = document.getElementById('progressBar');
             const progressText = document.getElementById('progressText');
             const totalParticipants = csvData.length;
 
-            // Array to store detailed logs
             const logData = [];
 
             try {
-                // First, get the invite link for the group
                 const inviteResponse = await fetch(`${API_BASE_URL}/api/invite-link`, {
                     method: 'POST',
                     headers: {
@@ -850,19 +832,16 @@ Kamu terdaftar sebagai peserta Diklat {nama_diklat} dengan group kelompok {kelom
 
                 const inviteLink = inviteData.inviteLink;
 
-                // Send messages to each participant
                 let successCount = 0;
                 let errorCount = 0;
 
                 for (let i = 0; i < csvData.length; i++) {
                     const participant = csvData[i];
                     
-                    // Update progress
                     const progress = ((i + 1) / totalParticipants) * 100;
                     progressBar.style.width = progress + '%';
                     progressText.textContent = `${i + 1} / ${totalParticipants} processed`;
                     
-                    // Skip invalid phone numbers if requested
                     if (!participant.valid) {
                         if (skipInvalid) {
                             errorCount++;
@@ -875,7 +854,6 @@ Kamu terdaftar sebagai peserta Diklat {nama_diklat} dengan group kelompok {kelom
                             });
                             continue; // Skip to next participant
                         } else {
-                            // Try to send anyway (user chose "Send All")
                             console.log(`Attempting to send to invalid number: ${participant.phone}`);
                         }
                     }
@@ -920,7 +898,6 @@ Kamu terdaftar sebagai peserta Diklat {nama_diklat} dengan group kelompok {kelom
                             console.error(`Failed to send to ${participant.phone}:`, data.message);
                         }
 
-                        // Add a small delay to avoid rate limiting
                         await new Promise(resolve => setTimeout(resolve, 1000));
 
                     } catch (error) {
@@ -936,7 +913,6 @@ Kamu terdaftar sebagai peserta Diklat {nama_diklat} dengan group kelompok {kelom
                     }
                 }
 
-                // Show results and offer to download log
                 const modal = bootstrap.Modal.getInstance(document.getElementById('inviteModal'));
                 modal.hide();
 
@@ -971,25 +947,20 @@ Kamu terdaftar sebagai peserta Diklat {nama_diklat} dengan group kelompok {kelom
                 });
 
                 if (response.ok) {
-                    // Create a blob from the response
                     const blob = await response.blob();
                     
-                    // Create download link
                     const url = window.URL.createObjectURL(blob);
                     const a = document.createElement('a');
                     a.style.display = 'none';
                     a.href = url;
-                    
-                    // Generate filename
+                
                     const timestamp = new Date().toISOString().split('T')[0];
                     const filename = `invite_log_${groupName?.replace(/[^a-zA-Z0-9]/g, '_') || 'group'}_${timestamp}.xlsx`;
                     a.download = filename;
                     
-                    // Trigger download
                     document.body.appendChild(a);
                     a.click();
                     
-                    // Cleanup
                     window.URL.revokeObjectURL(url);
                     document.body.removeChild(a);
                     
@@ -1004,7 +975,6 @@ Kamu terdaftar sebagai peserta Diklat {nama_diklat} dengan group kelompok {kelom
              }
          }
          
-         // Check Members Functions
          function openCheckModal(groupId, groupName) {
              checkGroupId = groupId;
              checkGroupName = groupName;
@@ -1012,7 +982,7 @@ Kamu terdaftar sebagai peserta Diklat {nama_diklat} dengan group kelompok {kelom
              document.getElementById('checkGroupId').textContent = groupId;
              document.getElementById('checkGroupName').textContent = groupName;
              
-             // Reset form
+ 
              document.getElementById('checkCsvFile').value = '';
              document.getElementById('checkCsvPreview').style.display = 'none';
              document.getElementById('checkCsvTable').querySelector('tbody').innerHTML = '';
@@ -1042,40 +1012,37 @@ Kamu terdaftar sebagai peserta Diklat {nama_diklat} dengan group kelompok {kelom
                          let phone = '';
                          
                          if (parts.length >= 2) {
-                             // Format: name; phone
                              name = parts[0].trim();
                              phone = parts[1].trim();
                          } else if (parts.length === 1) {
-                             // Format: just phone number
                              phone = parts[0].trim();
-                             name = phone; // Use phone as name for display
+                             name = phone;
                          }
                          
                          if (phone) {
-                             // Fix phone number format - convert scientific notation back to normal number
+                 
                              if (phone.includes('E') || phone.includes('e')) {
                                  phone = parseFloat(phone).toString();
                              }
                              
-                             // Remove any non-numeric characters except + and .
+ 
                              phone = phone.replace(/[^\d+.]/g, '');
                              
-                             // If it's a decimal number, convert to integer
+ 
                              if (phone.includes('.')) {
                                  phone = phone.split('.')[0];
                              }
                              
-                             // Ensure it starts with country code
+ 
                              if (phone.startsWith('+')) {
                                  phone = phone.substring(1);
                              }
                              
-                             // If it doesn't start with 62, assume it's Indonesian
+ 
                              if (!phone.startsWith('62')) {
                                  phone = '62' + phone.replace(/^0/, '');
                              }
                              
-                                                           // Validate phone number length and format
                               if (phone.length < 12) {
                                   console.warn(`Invalid phone number for ${name}: ${phone} (too short - minimum 12 digits required)`);
                                   checkCsvData.push({
@@ -1134,7 +1101,6 @@ Kamu terdaftar sebagai peserta Diklat {nama_diklat} dengan group kelompok {kelom
                  else invalidCount++;
              });
  
-             // Add summary row
              const summaryRow = document.createElement('tr');
              summaryRow.className = 'table-info';
              summaryRow.innerHTML = `
@@ -1145,95 +1111,6 @@ Kamu terdaftar sebagai peserta Diklat {nama_diklat} dengan group kelompok {kelom
              tbody.appendChild(summaryRow);
  
              document.getElementById('checkCsvPreview').style.display = 'block';
-         }
-         
-         // Function to list group members
-         async function listGroupMembers(groupId, groupName) {
-             try {
-                                   const response = await fetch('http://localhost:3000/api/group-participants', {
-                     method: 'POST',
-                     headers: {
-                         'Content-Type': 'application/json'
-                     },
-                     body: JSON.stringify({ groupId })
-                 });
-
-                 const data = await response.json();
-                 
-                 if (data.success) {
-                     // Create a detailed display of all participant data
-                     let memberList = '<div class="alert alert-info"><h5>Group Members Data for: ' + groupName + '</h5>';
-                     memberList += '<p><strong>Total Participants:</strong> ' + data.participants.length + '</p>';
-                     memberList += '<hr>';
-                     
-                     data.participants.forEach((participant, index) => {
-                         memberList += '<div class="mb-3 p-3 border rounded">';
-                         memberList += '<h6>Participant #' + (index + 1) + '</h6>';
-                         memberList += '<p><strong>ID:</strong> ' + participant.id + '</p>';
-                         memberList += '<p><strong>Admin:</strong> ' + (participant.admin || 'No') + '</p>';
-                         
-                         // Show extracted phone if available
-                         if (participant.extractedPhone) {
-                             memberList += '<p><strong>Extracted Phone:</strong> ' + participant.extractedPhone + '</p>';
-                         }
-                         
-                         // Show contact info if available
-                         if (participant.contactInfo) {
-                             memberList += '<p><strong>Contact Info:</strong></p>';
-                             memberList += '<pre class="bg-light p-2 rounded"><code>' + JSON.stringify(participant.contactInfo, null, 2) + '</code></pre>';
-                         }
-                         
-                         // Show user info if available
-                         if (participant.userInfo) {
-                             memberList += '<p><strong>User Info:</strong></p>';
-                             memberList += '<pre class="bg-light p-2 rounded"><code>' + JSON.stringify(participant.userInfo, null, 2) + '</code></pre>';
-                         }
-                         
-                         // Show the raw participant object for debugging
-                         memberList += '<p><strong>Raw Data:</strong></p>';
-                         memberList += '<pre class="bg-light p-2 rounded"><code>' + JSON.stringify(participant.rawData, null, 2) + '</code></pre>';
-                         memberList += '</div>';
-                     });
-                     
-                     memberList += '</div>';
-                     
-                     // Show in a modal
-                     const modal = document.createElement('div');
-                     modal.className = 'modal fade';
-                     modal.id = 'memberListModal';
-                     modal.innerHTML = `
-                         <div class="modal-dialog modal-xl">
-                             <div class="modal-content">
-                                 <div class="modal-header">
-                                     <h5 class="modal-title">Group Members Data - ${groupName}</h5>
-                                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                 </div>
-                                 <div class="modal-body">
-                                     ${memberList}
-                                 </div>
-                                 <div class="modal-footer">
-                                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                 </div>
-                             </div>
-                         </div>
-                     `;
-                     
-                     document.body.appendChild(modal);
-                     const modalInstance = new bootstrap.Modal(modal);
-                     modalInstance.show();
-                     
-                     // Clean up modal after it's hidden
-                     modal.addEventListener('hidden.bs.modal', () => {
-                         document.body.removeChild(modal);
-                     });
-                     
-                 } else {
-                     alert('Error: ' + data.message);
-                 }
-             } catch (error) {
-                 console.error('Error listing group members:', error);
-                 alert('Error listing group members: ' + error.message);
-             }
          }
          
          async function checkMembers() {
@@ -1247,18 +1124,15 @@ Kamu terdaftar sebagai peserta Diklat {nama_diklat} dengan group kelompok {kelom
               checkBtn.disabled = true;
               checkBtn.innerHTML = '<i class="bi bi-spinner spinner-border spinner-border-sm"></i> Checking...';
   
-              // Show progress section
               document.getElementById('checkProgressSection').style.display = 'block';
               const progressBar = document.getElementById('checkProgressBar');
               const progressText = document.getElementById('checkProgressText');
               const totalParticipants = checkCsvData.length;
   
               try {
-                  // Update progress
                   progressBar.style.width = '50%';
                   progressText.textContent = 'Getting group participants...';
   
-                  // Use the new improved check-members-v2 API endpoint
                   const checkResponse = await fetch(`${API_BASE_URL}/api/check-members-v2`, {
                       method: 'POST',
                       headers: {
@@ -1279,11 +1153,9 @@ Kamu terdaftar sebagai peserta Diklat {nama_diklat} dengan group kelompok {kelom
                       throw new Error('Failed to check members: ' + checkData.message);
                   }
   
-                  // Update progress
                   progressBar.style.width = '100%';
                   progressText.textContent = 'Processing results...';
   
-                  // Convert results to log format
                   const logData = checkData.results.map(result => ({
                       name: result.name,
                       phone: result.phone,
@@ -1292,11 +1164,10 @@ Kamu terdaftar sebagai peserta Diklat {nama_diklat} dengan group kelompok {kelom
                       timestamp: new Date().toLocaleString('id-ID')
                   }));
   
-                  // Show results and offer to download log
                   const modal = bootstrap.Modal.getInstance(document.getElementById('checkModal'));
                   modal.hide();
   
-                  const resultMessage = `Member check completed!\nMembers: ${checkData.members}\nNot Members: ${checkData.notMembers}\nErrors: ${checkData.errors}\n\nWould you like to download the detailed log?`;
+                  const resultMessage = `Member check completed!\nMembers: ${checkData.members}\nNot Members: ${checkData.notMembers}\nInvalid: ${checkData.invalid}\n\nWould you like to download the detailed log?`;
                   
                   if (confirm(resultMessage)) {
                       await generateCheckExcelLog(logData, checkGroupName);
@@ -1325,25 +1196,20 @@ Kamu terdaftar sebagai peserta Diklat {nama_diklat} dengan group kelompok {kelom
                  });
  
                  if (response.ok) {
-                     // Create a blob from the response
                      const blob = await response.blob();
                      
-                     // Create download link
                      const url = window.URL.createObjectURL(blob);
                      const a = document.createElement('a');
                      a.style.display = 'none';
                      a.href = url;
                      
-                     // Generate filename
                      const timestamp = new Date().toISOString().split('T')[0];
                      const filename = `member_check_${groupName?.replace(/[^a-zA-Z0-9]/g, '_') || 'group'}_${timestamp}.xlsx`;
                      a.download = filename;
                      
-                     // Trigger download
                      document.body.appendChild(a);
                      a.click();
                      
-                     // Cleanup
                      window.URL.revokeObjectURL(url);
                      document.body.removeChild(a);
                      
