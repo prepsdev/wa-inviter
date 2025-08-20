@@ -698,13 +698,13 @@ Kamu terdaftar sebagai peserta Diklat {nama_diklat} dengan group kelompok {kelom
                                 phone = '62' + phone.replace(/^0/, '');
                             }
                             
-                             if (phone.length < 12) {
-                                 console.warn(`Invalid phone number for ${parts[0].trim()}: ${phone} (too short - minimum 12 digits required)`);
+                             if (phone.length < 10) {
+                                 console.warn(`Invalid phone number for ${parts[0].trim()}: ${phone} (too short - minimum 10 digits required)`);
                                  csvData.push({
                                      name: parts[0].trim(),
                                      phone: phone,
                                      valid: false,
-                                     error: `Phone number too short (${phone.length} digits, need 12+)`
+                                     error: `Phone number too short (${phone.length} digits, need 10+)`
                                  });
                              } else if (phone.length > 15) {
                                  console.warn(`Invalid phone number for ${parts[0].trim()}: ${phone} (too long)`);
@@ -1043,13 +1043,13 @@ Kamu terdaftar sebagai peserta Diklat {nama_diklat} dengan group kelompok {kelom
                                  phone = '62' + phone.replace(/^0/, '');
                              }
                              
-                              if (phone.length < 12) {
-                                  console.warn(`Invalid phone number for ${name}: ${phone} (too short - minimum 12 digits required)`);
+                              if (phone.length < 10) {
+                                  console.warn(`Invalid phone number for ${name}: ${phone} (too short - minimum 10 digits required)`);
                                   checkCsvData.push({
                                       name: name,
                                       phone: phone,
                                       valid: false,
-                                      error: `Phone number too short (${phone.length} digits, need 12+)`
+                                      error: `Phone number too short (${phone.length} digits, need 10+)`
                                   });
                               } else if (phone.length > 15) {
                                   console.warn(`Invalid phone number for ${name}: ${phone} (too long)`);

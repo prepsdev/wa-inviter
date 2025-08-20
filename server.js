@@ -295,10 +295,10 @@ app.post('/api/send-message', async (req, res) => {
             formattedPhone = '62' + formattedPhone.replace(/^0/, '');
         }
         
-        if (formattedPhone.length < 12) {
+        if (formattedPhone.length < 10 || formattedPhone.length > 15) {
             return res.status(400).json({
                 success: false,
-                message: 'Invalid phone number: incomplete number',
+                message: 'Invalid phone number: must be 10-15 digits',
                 phone: phone
             });
         }
