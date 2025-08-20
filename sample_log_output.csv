@@ -1,0 +1,15 @@
+Name; Phone; Status; Reason; Timestamp
+Abdul A, M.d; 6281224377189; Success; Message sent successfully; 20/08/2025 13:52:30
+Budi Santoso; 6281234567890; Failed; Invalid phone number; 20/08/2025 13:52:31
+Citra Dewi; 6282345678901; Success; Message sent successfully; 20/08/2025 13:52:32
+Dedi Kurniawan; 6283456789012; Failed; Network error; 20/08/2025 13:52:33
+Eka Putri; 6284567890123; Success; Message sent successfully; 20/08/2025 13:52:34
+
+Summary Information
+Group Name; Test Group
+Nama Diklat; Pelatihan Dasar
+Kelompok; A
+Total Participants; 5
+Success; 3
+Failed; 2
+Generated At; 20/08/2025 13:52:35
